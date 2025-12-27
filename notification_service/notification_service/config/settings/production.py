@@ -1,3 +1,3 @@
-from notification_service.config.settings._base import *
+from notification_service.config.settings.base import *
 
 DEBUG = False
