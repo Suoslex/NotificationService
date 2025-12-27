@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from pathlib import Path
+from base64 import b64decode
 
 from dotenv import load_dotenv
 
@@ -150,3 +151,9 @@ CELERY_BROKER_URL = (
     f"@{RABBITMQ_HOST}:{RABBITMQ_PORT}{RABBITMQ_VHOST}"
 )
 
+
+# JWT
+JWT_AUTH_ENABLED = os.getenv("JWT_AUTH_ENABLED", "False") != "False"
+JWT_AUDIENCE = os.getenv("JWT_AUDIENCE", "notification-service")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "RS256")
+JWT_PUBLIC_KEY = b64decode(os.getenv("JWT_PUBLIC_KEY", "")).decode("utf8")
