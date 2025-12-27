@@ -1,5 +1,6 @@
 from dataclasses import asdict
 
+from django.http import HttpRequest
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -14,12 +15,18 @@ from notification_service.adapters.dependencies import get_unit_of_work
 
 
 class SendNotificationView(APIView):
+    """
+    View for sending notifications.
+
+    Handles HTTP POST requests for creating and sending notifications.
+    Requires JWT authentication and scope checking.
+    """
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasScope]
     required_scope = "notifications:send"
     serializer_class = serializers.NotificationSerializer
 
-    def post(self, request):
+    def post(self, request: HttpRequest) -> Response:
         notification_data = self.serializer_class(data=request.data)
         notification_data.is_valid(raise_exception=True)
         use_case = SendNotificationUseCase(get_unit_of_work())

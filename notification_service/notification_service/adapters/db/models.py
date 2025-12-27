@@ -20,6 +20,10 @@ _NotificationStatusChoices = models.TextChoices(
 )
 
 class NotificationModel(models.Model):
+    """
+    Notification model.
+    Stores notification information in the database.
+    """
     # TODO: Indexes
 
     uuid: UUID = models.UUIDField()

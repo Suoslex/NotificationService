@@ -1,13 +1,38 @@
 import jwt
 from django.conf import settings
+from django.http import HttpRequest
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import BasePermission
+from rest_framework.views import APIView
 
 from notification_service.application.dtos.auth_context import AuthContext
 
 class JWTAuthentication(BaseAuthentication):
-    def authenticate(self, request):
+    """
+    Class for authenticating users using JWT tokens.
+    Extracts the token from the Authorization header and validates it.
+    """
+    def authenticate(self, request: HttpRequest):
+        """
+        Authenticate user based on JWT token.
+
+        Parameters
+        ----------
+        request : HttpRequest
+            HTTP request object containing Authorization header
+
+        Returns
+        ----------
+        tuple[AuthContext, None] | None
+            Tuple with authentication context and None if token is valid, 
+            or just None otherwise.
+
+        Raises
+        ----------
+        AuthenticationFailed
+            If token is expired or invalid
+        """
         token = self._extract_bearer_token(request)
         if token is None:
             return None
@@ -31,7 +56,20 @@ class JWTAuthentication(BaseAuthentication):
             None,
         )
 
-    def _extract_bearer_token(self, request) -> str | None:
+    def _extract_bearer_token(self, request: HttpRequest) -> str | None:
+        """
+        Extract Bearer token from Authorization header.
+
+        Parameters
+        ----------
+        request : HttpRequest
+            HTTP request object
+
+        Returns
+        ----------
+        str | None
+            Bearer token or None if token is not found or invalid format
+        """
         auth_header = request.headers.get("Authorization")
         if not auth_header:
             return None
@@ -48,9 +86,29 @@ class JWTAuthentication(BaseAuthentication):
 
 
 class HasScope(BasePermission):
+    """
+    Class to check if a user has the required scope
+    to access the protected resource. 
+    Disabled when settings.JWT_AUTH_ENABLED = False.
+    """
     required_scope: str
 
-    def has_permission(self, request, view):
+    def has_permission(self, request: HttpRequest, view: APIView):
+        """
+        Check if user has required scope.
+
+        Parameters
+        ----------
+        request : HttpRequest
+            HTTP request object
+        view : APIView
+            View being accessed
+
+        Returns
+        ----------
+        bool
+            True if user has required scope, False otherwise.
+        """
         if not settings.JWT_AUTH_ENABLED:
             return True
 

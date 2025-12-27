@@ -16,6 +16,12 @@ from notification_service.adapters.workers.notification_channels import (
 
 @shared_task(autoretry_for=(Exception,), retry_backoff=5)
 def send_notifications():
+    """
+    Celery task to send pending notifications.
+
+    Fetches pending notifications from the database and sends them
+    using appropriate notification channels based on user preferences.
+    """
     logger.info("Checking for pending notifications to send")
     uow = get_unit_of_work()
     user_provider = get_user_provider()

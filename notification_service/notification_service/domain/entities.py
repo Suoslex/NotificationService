@@ -8,6 +8,10 @@ from notification_service.domain.enums import (
 
 @dataclass
 class Notification:
+    """
+    Notification entity.
+    Represents a notification with its properties and status.
+    """
     uuid: UUID
     user_id: int
     title: str
