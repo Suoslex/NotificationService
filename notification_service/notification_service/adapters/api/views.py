@@ -8,7 +8,7 @@ from notification_service.adapters.api import serializers
 from notification_service.application.use_cases.send_notification import (
     SendNotificationUseCase
 )
-from notification_service.adapters.db.unit_of_work import DjangoUnitOfWork
+from notification_service.adapters.dependencies import get_unit_of_work
 
 
 class SendNotificationView(APIView):
@@ -17,7 +17,7 @@ class SendNotificationView(APIView):
     def post(self, request):
         notification_data = self.serializer_class(data=request.data)
         notification_data.is_valid(raise_exception=True)
-        use_case = SendNotificationUseCase(DjangoUnitOfWork())
+        use_case = SendNotificationUseCase(get_unit_of_work())
         accept_status = use_case.execute(
             Notification(**notification_data.validated_data)
         )

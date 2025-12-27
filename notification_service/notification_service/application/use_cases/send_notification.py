@@ -1,4 +1,6 @@
-from notification_service.application.dtos import NotificationStatusDTO
+from notification_service.application.dtos.notification_status import (
+    NotificationStatusDTO
+)
 from notification_service.domain.entities import Notification
 from notification_service.application.ports.unit_of_work import (
     UnitOfWorkPort

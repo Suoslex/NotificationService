@@ -18,8 +18,6 @@ class DjangoUnitOfWork(UnitOfWorkPort):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._transaction.__exit__(exc_type, exc_val, exc_tb)
 
-    def commit(self):
-        transaction.commit()
+    def commit(self): ...
 
-    def rollback(self):
-        transaction.rollback()
+    def rollback(self): ...

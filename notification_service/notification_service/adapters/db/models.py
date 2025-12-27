@@ -36,6 +36,7 @@ class NotificationModel(models.Model):
         default=_NotificationStatusChoices.PENDING
     )
     sent_at: datetime = models.DateTimeField(null=True, default=None)
+    created_at: datetime = models.DateTimeField(auto_now_add=True)
 
 
 
