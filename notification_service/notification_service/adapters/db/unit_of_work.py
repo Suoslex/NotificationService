@@ -23,23 +23,7 @@ class DjangoUnitOfWork(UnitOfWorkPort):
         self._transaction.__exit__(exc_type, exc_val, exc_tb)
 
     def commit(self) -> None:
-        """
-        Commit the transaction.
-
-        Raises
-        ----------
-        NotImplementedError
-            Method is not implemented
-        """
         transaction.commit()
 
     def rollback(self) -> None:
-        """
-        Rollback the transaction.
-
-        Raises
-        ----------
-        NotImplementedError
-            Method is not implemented
-        """
         transaction.rollback()

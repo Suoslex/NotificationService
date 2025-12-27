@@ -43,11 +43,6 @@ class UnitOfWorkPort(ABC):
     def commit(self) -> None:
         """
         Commit the transaction.
-
-        Raises
-        ----------
-        NotImplementedError
-            Method is not implemented
         """
         ...
 
@@ -55,10 +50,5 @@ class UnitOfWorkPort(ABC):
     def rollback(self) -> None:
         """
         Rollback the transaction.
-
-        Raises
-        ----------
-        NotImplementedError
-            Method is not implemented
         """
         ...
