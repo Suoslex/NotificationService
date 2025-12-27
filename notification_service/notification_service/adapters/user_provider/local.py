@@ -1,5 +1,7 @@
 from notification_service.domain.enums import NotificationType
-from notification_service.application.ports.exceptions import UserNotFound
+from notification_service.application.ports.exceptions.user_provider import (
+    UserNotFound
+)
 from notification_service.application.dtos.user_notification_settings import (
     UserNotificationsSettings
 )

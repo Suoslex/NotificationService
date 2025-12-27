@@ -5,7 +5,10 @@ from notification_service.adapters.dependencies import (
     get_unit_of_work,
     get_user_provider
 )
-from notification_service.application.ports.exceptions import (
+from notification_service.application.ports.exceptions.workers import (
+    NotificationChannelError
+)
+from notification_service.application.ports.exceptions.user_provider import (
     UserNotFound,
 )
 from notification_service.domain.enums import NotificationStatus
@@ -59,7 +62,7 @@ def send_notifications():
                 try:
                     channel = get_notification_channel(channel_type)
                     channel.send(notification)
-                except Exception as error:
+                except NotificationChannelError as error:
                     continue
                 break
             else:

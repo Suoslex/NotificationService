@@ -6,7 +6,7 @@ from notification_service.application.ports.repositories import (
 from notification_service.domain.entities import Notification
 from notification_service.domain.enums import NotificationStatus
 from notification_service.adapters.db.models import NotificationModel
-from notification_service.application.ports.exceptions import (
+from notification_service.application.ports.exceptions.repository import (
     ObjectNotFoundInRepository
 )
 
