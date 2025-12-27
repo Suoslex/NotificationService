@@ -1,6 +1,6 @@
 import jwt
 from django.conf import settings
-from django.http import HttpRequest
+from rest_framework.request import Request
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import BasePermission
@@ -13,13 +13,13 @@ class JWTAuthentication(BaseAuthentication):
     Class for authenticating users using JWT tokens.
     Extracts the token from the Authorization header and validates it.
     """
-    def authenticate(self, request: HttpRequest):
+    def authenticate(self, request: Request):
         """
         Authenticate user based on JWT token.
 
         Parameters
         ----------
-        request : HttpRequest
+        request : Request
             HTTP request object containing Authorization header
 
         Returns
@@ -56,13 +56,13 @@ class JWTAuthentication(BaseAuthentication):
             None,
         )
 
-    def _extract_bearer_token(self, request: HttpRequest) -> str | None:
+    def _extract_bearer_token(self, request: Request) -> str | None:
         """
         Extract Bearer token from Authorization header.
 
         Parameters
         ----------
-        request : HttpRequest
+        request : Request
             HTTP request object
 
         Returns
@@ -93,13 +93,13 @@ class HasScope(BasePermission):
     """
     required_scope: str
 
-    def has_permission(self, request: HttpRequest, view: APIView):
+    def has_permission(self, request: Request, view: APIView):
         """
         Check if user has required scope.
 
         Parameters
         ----------
-        request : HttpRequest
+        request : Request
             HTTP request object
         view : APIView
             View being accessed
