@@ -38,6 +38,7 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
                 title=notification.title,
                 text=notification.text,
                 type=notification.type,
+                status=notification.status,
             )
         )
         if not updated:

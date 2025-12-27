@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import asdict
 
 from notification_service.domain.entities import Notification
 from notification_service.domain.enums import NotificationType
@@ -31,19 +32,19 @@ class NotificationChannel(ABC):
 
 class EmailNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
-        pass
+        print(f"Email sent: {asdict(notification)}")
 
 
 class SMSNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
-        pass
+        print(f"SMS sent: {asdict(notification)}")
 
 
 class PushNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
-        pass
+        print(f"Push sent: {asdict(notification)}")
 
 
 class TelegramNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
-        pass
+        print(f"Telegram message sent: {asdict(notification)}")
