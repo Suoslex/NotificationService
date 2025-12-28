@@ -35,41 +35,116 @@ def send_notifications():
         if not notification:
             logger.debug("No notification is pending right now.")
             return
+        
+        logger.info(
+            f"Processing notification {notification.uuid} for "
+            f"user {notification.user_uuid}"
+        )
+        
         try:
             user_settings = user_provider.get_notification_settings(
                 user_uuid=notification.user_uuid
             )
+            logger.debug(
+                f"Retrieved user settings for "
+                f"{notification.user_uuid}: {user_settings}"
+            )
         except UserNotFound:
+            logger.warning(
+                f"User {notification.user_uuid} not found, "
+                f"marking notification {notification.uuid} "
+                f"as FAILED"
+            )
             notification.status = NotificationStatus.FAILED
             uow.notification_repo.update(notification)
             return
+        
         if notification.type:
+            logger.debug(
+                f"Notification has specific type: "
+                f"{notification.type}"
+            )
             if notification.type not in user_settings.notification_channels:
+                logger.warning(
+                    f"User {notification.user_uuid} does not "
+                    f"have {notification.type} enabled, marking "
+                    f"notification {notification.uuid} as FAILED"
+                )
                 notification.status = NotificationStatus.FAILED
                 uow.notification_repo.update(notification)
                 return
             notification_channel_types = [notification.type]
         else:
+            logger.debug(
+                f"Notification has no specific type, using "
+                f"user preferences"
+            )
             notification_channel_types = [
-                user_settings.preferred_notification_channel,
                 *(
                     set(user_settings.notification_channels)
                     - {user_settings.preferred_notification_channel}
                 )
             ]
+            if user_settings.preferred_notification_channel:
+                notification_channel_types.insert(
+                    0,
+                    notification_channel_types
+                )
+        
+        logger.debug(
+            f"Attempting to send notification via channels: "
+            f"{notification_channel_types}"
+        )
+        
         for channel_type in notification_channel_types:
-            for _ in range(3):
+            logger.info(
+                f"Attempting to send notification "
+                f"{notification.uuid} via {channel_type} channel"
+            )
+            for attempt in range(3):
                 try:
+                    logger.debug(
+                        f"Attempt {attempt + 1} to send via "
+                        f"{channel_type}"
+                    )
                     channel = get_notification_channel(channel_type)
+                    logger.debug(
+                        f"Successfully got channel for {channel_type}"
+                    )
                     channel.send(notification)
+                    break
                 except NotificationChannelError as error:
+                    logger.warning(
+                        f"Failed to send notification "
+                        f"{notification.uuid} via {channel_type} "
+                        f"on attempt {attempt + 1}: {str(error)}"
+                    )
                     continue
-                break
+                except Exception as e:
+                    logger.error(
+                        f"Unexpected error sending notification "
+                        f"{notification.uuid} via {channel_type}: "
+                        f"{str(e)}"
+                    )
+                    continue
             else:
+                logger.info(
+                    f"All 3 attempts failed for channel {channel_type}, "
+                    f"trying next channel"
+                )
                 continue
+            logger.info(
+                f"Successfully sent notification "
+                f"{notification.uuid} via {channel_type} "
+                f"on attempt {attempt + 1}"
+            )
             notification.status = NotificationStatus.SENT
             uow.notification_repo.update(notification)
             return
+        logger.warning(
+            f"All notification channels failed for notification "
+            f"{notification.uuid}, marking as FAILED"
+        )
         notification.status = NotificationStatus.FAILED
         uow.notification_repo.update(notification)
         return

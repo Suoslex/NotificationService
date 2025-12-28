@@ -13,4 +13,4 @@ class UserNotificationsSettings:
     """
     user_uuid: UUID
     notification_channels: dict[NotificationType, str]
-    preferred_notification_channel: NotificationType
+    preferred_notification_channel: NotificationType | None

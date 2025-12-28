@@ -29,11 +29,11 @@ services:
       retries: 3
 
   keycloak:
-    image: quay.io/keycloak/keycloak:24.0
+    image: keycloak/keycloak:latest
     command: start-dev --import-realm
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: root
+      KEYCLOAK_ADMIN_PASSWORD: root
     ports:
       - "8080:8080"
     volumes:

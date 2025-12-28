@@ -1,16 +1,16 @@
 import jwt
 from django.conf import settings
+from keycloak import KeycloakGetError
 from loguru import logger
+from keycloak.exceptions import KeycloakError
 from rest_framework.request import Request
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 
+from notification_service.config.keycloak import keycloak_openid
 from notification_service.application.dtos.auth_context import AuthContext
-from notification_service.application.ports.exceptions.base import (
-    TemporaryFailure
-)
 
 
 class JWTAuthentication(BaseAuthentication):
@@ -42,17 +42,7 @@ class JWTAuthentication(BaseAuthentication):
         if token is None:
             return None
         # TODO: Logs
-        try:
-            claims = self._decode_token(token)
-        except jwt.PyJWKClientError as e:
-            logger.debug(f"Decode token error: {e}")
-            raise AuthenticationFailed("The token is invalid.")
-        except jwt.ExpiredSignatureError as e:
-            logger.debug(f"Decode token error: {e}")
-            raise AuthenticationFailed("Token expired")
-        except jwt.InvalidTokenError as e:
-            logger.debug(f"Decode token error: {e}")
-            raise AuthenticationFailed("Invalid token")
+        claims = self._decode_token(token)
         scopes = claims.get("scope", "")
         if isinstance(scopes, str):
             scopes = scopes.split()
@@ -94,28 +84,31 @@ class JWTAuthentication(BaseAuthentication):
 
     def _decode_token(self, token: str) -> dict | None:
         if settings.JWT_KEYCLOAK_ENABLED:
-            jwks_client = jwt.PyJWKClient(
-                f"{settings.JWT_KEYCLOAK_URL}/protocol/openid-connect/certs",
-                cache_keys=True
-            )
             try:
-                signing_key = jwks_client.get_signing_key_from_jwt(token)
-            except (ConnectionError, ConnectionResetError):
-                raise TemporaryFailure(
-                    "Auth server is not available at the moment."
+                return keycloak_openid.decode_token(token)
+            except KeycloakGetError as e:
+                raise AuthenticationFailed(
+                    f"Token is invalid (most likely user_id is not found)"
                 )
-            return jwt.decode(
-                token,
-                signing_key.key,
-                algorithms=[settings.JWT_ALGORITHM],
-            )
+            except KeycloakError as e:
+                raise AuthenticationFailed(f"Keycloak error: {e}")
+            except Exception as e:
+                logger.debug(f"Couldn't decode token with keycloak: {e}")
+                raise AuthenticationFailed("Invalid token")
         elif settings.JWT_AUTH_ENABLED:
-            return jwt.decode(
-                token,
-                settings.JWT_PUBLIC_KEY,
-                audience=settings.JWT_AUDIENCE,
-                algorithms=[settings.JWT_ALGORITHM]
-            )
+            try:
+                return jwt.decode(
+                    token,
+                    settings.JWT_PUBLIC_KEY,
+                    audience=settings.JWT_AUDIENCE,
+                    algorithms=[settings.JWT_ALGORITHM]
+                )
+            except jwt.ExpiredSignatureError as e:
+                logger.debug(f"Decode token error: {e}")
+                raise AuthenticationFailed("Token expired")
+            except jwt.InvalidTokenError as e:
+                logger.debug(f"Decode token error: {e}")
+                raise AuthenticationFailed("Invalid token")
         return None
 
 

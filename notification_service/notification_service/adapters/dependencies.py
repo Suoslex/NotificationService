@@ -1,5 +1,7 @@
 from notification_service.adapters.db.unit_of_work import DjangoUnitOfWork
-from notification_service.adapters.user_provider.local import LocalUserProvider
+from notification_service.adapters.user_provider.keycloak import (
+    KeycloakUserProvider
+)
 from notification_service.application.ports.unit_of_work import UnitOfWorkPort
 from notification_service.application.ports.user_provider import (
     UserProviderPort
@@ -15,7 +17,7 @@ def get_user_provider() -> UserProviderPort:
     UserProviderPort
         Adapter implementation of UserProviderPort.
     """
-    return LocalUserProvider()
+    return KeycloakUserProvider()
 
 def get_unit_of_work() -> UnitOfWorkPort:
     """
