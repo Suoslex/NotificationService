@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from notification_service.domain.enums import NotificationType
 from notification_service.application.ports.exceptions.user_provider import (
     UserNotFound
@@ -18,15 +20,15 @@ class LocalUserProvider(UserProviderPort):
     """
     def get_notification_settings(
             self,
-            user_id: int
+            user_uuid: UUID
     ) -> UserNotificationsSettings:
         """
         Get notification settings for a user from local storage.
 
         Parameters
         ----------
-        user_id : int
-            ID of the user
+        user_uuid : UUID
+            UUID of the user
 
         Returns
         ----------
@@ -38,26 +40,30 @@ class LocalUserProvider(UserProviderPort):
         UserNotFound
             If user is not found in local storage
         """
-        if user_id not in self._local_users:
+        if user_uuid not in self._local_users:
             raise UserNotFound()
-        return self._local_users[user_id]
+        return self._local_users[user_uuid]
 
     _local_users = {
-        1: UserNotificationsSettings(
-            user_id=1,
-            notification_channels={
-                NotificationType.EMAIL: "example@localhost",
-                NotificationType.PUSH: "392301"
-            },
-            preferred_notification_channel=NotificationType.EMAIL
+        UUID("00000000-0000-0000-0000-000000000000"): (
+            UserNotificationsSettings(
+                user_uuid=UUID("00000000-0000-0000-0000-000000000000"),
+                notification_channels={
+                    NotificationType.EMAIL: "example@localhost",
+                    NotificationType.PUSH: "392301"
+                },
+                preferred_notification_channel=NotificationType.EMAIL
+            )
         ),
-        2: UserNotificationsSettings(
-            user_id=2,
-            notification_channels={
-                NotificationType.SMS: "+000000000001",
-                NotificationType.PUSH: "392302",
-                NotificationType.EMAIL: "example2@localhost",
-            },
-            preferred_notification_channel=NotificationType.PUSH
+        UUID("00000000-0000-0000-0000-000000000001"): (
+            UserNotificationsSettings(
+                user_uuid=UUID("00000000-0000-0000-0000-000000000001"),
+                notification_channels={
+                    NotificationType.SMS: "+000000000001",
+                    NotificationType.PUSH: "392302",
+                    NotificationType.EMAIL: "example2@localhost",
+                },
+                preferred_notification_channel=NotificationType.PUSH
+            )
         ),
     }

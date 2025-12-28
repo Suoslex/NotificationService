@@ -11,5 +11,5 @@ class NotificationSerializer(serializers.HyperlinkedModelSerializer):
     """
     class Meta:
         model = models.NotificationModel
-        fields = ["uuid", "user_id", "title", "text", "type"]
+        fields = ["uuid", "user_uuid", "title", "text", "type"]
 

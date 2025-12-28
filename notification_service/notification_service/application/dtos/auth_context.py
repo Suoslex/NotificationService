@@ -1,3 +1,4 @@
+from uuid import UUID
 from dataclasses import dataclass
 
 
@@ -8,7 +9,7 @@ class AuthContext:
 
     Stores user authentication information including user ID and scopes.
     """
-    user_id: int
+    user_uuid: UUID
     scopes: set[str]
 
     def has(self, scope: str) -> bool:

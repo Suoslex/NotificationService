@@ -13,7 +13,7 @@ class Notification:
     Represents a notification with its properties and status.
     """
     uuid: UUID
-    user_id: int
+    user_uuid: UUID
     title: str
     text: str
     type: NotificationType | None = None

@@ -1,3 +1,4 @@
+from uuid import UUID
 from dataclasses import dataclass
 
 from notification_service.domain.enums import NotificationType
@@ -10,6 +11,6 @@ class UserNotificationsSettings:
 
     Contains information about user's notification preferences and channels.
     """
-    user_id: int
+    user_uuid: UUID
     notification_channels: dict[NotificationType, str]
     preferred_notification_channel: NotificationType

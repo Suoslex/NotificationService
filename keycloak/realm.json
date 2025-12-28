@@ -18,46 +18,23 @@
       "fullScopeAllowed": true,
       "clientAuthenticatorType": "client-secret",
       "secret": "dev-secret",
-      "defaultClientScopes": [
-        "profile",
-        "email",
-        "notifications:send"
-      ],
       "attributes": {
         "access.token.lifespan": "6000"
       },
       "protocolMappers": [
         {
-          "name": "scope-mapper",
+          "name": "user-scope",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-client-role-mapper",
-          "config": {
-            "claim.name": "scope",
-            "jsonType.label": "JSON",
-            "access.token.claim": "true",
-            "multivalued": "true"
-          }
-        }
-      ]
-    }
-  ],
-  "clientScopes": [
-    {
-      "name": "notifications:send",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true"
-      },
-      "protocolMappers": [
-        {
-          "name": "scope-mapper",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
           "config": {
             "claim.name": "scope",
             "jsonType.label": "String",
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
             "access.token.claim": "true",
-            "multivalued": "true"
+            "client.id": "notification-service"
           }
         }
       ]
@@ -65,18 +42,63 @@
   ],
   "users": [
     {
-      "username": "user",
+      "username": "admin",
       "enabled": true,
-      "email": "user@example.com",
+      "email": "admin@example.com",
       "emailVerified": true,
       "requiredActions": [],
       "credentials": [
         {
           "type": "password",
-          "value": "user",
+          "value": "admin",
           "temporary": false
         }
-      ]
+      ],
+      "clientRoles": {
+        "notification-service": ["notifications:send"]
+      }
+    },
+    {
+      "username": "user1",
+      "enabled": true,
+      "email": "user1@example.com",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "user1",
+          "value": "user1",
+          "temporary": false
+        }
+      ],
+      "attributes": {
+        "sms": "+000000000001",
+        "push_token": "392302",
+        "preferred_notification_channel": "push"
+      },
+      "clientRoles": {
+        "notification-service": []
+      }
+    },
+    {
+      "username": "user2",
+      "enabled": true,
+      "email": "user2@example.com",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user2",
+          "temporary": false
+        }
+      ],
+      "attributes": {
+        "telegram": "8123728",
+        "push_token": "392303",
+        "preferred_notification_channel": "email"
+      },
+      "clientRoles": {
+        "notification-service": []
+      }
     }
   ]
 }

@@ -27,7 +27,7 @@ class NotificationModel(models.Model):
     # TODO: Indexes
 
     uuid: UUID = models.UUIDField()
-    user_id: int = models.IntegerField()
+    user_uuid: UUID = models.UUIDField()
     title: str = models.CharField()
     text: str = models.CharField()
     type: NotificationType | None = models.CharField(

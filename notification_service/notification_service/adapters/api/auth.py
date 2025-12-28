@@ -8,6 +8,10 @@ from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 
 from notification_service.application.dtos.auth_context import AuthContext
+from notification_service.application.ports.exceptions.base import (
+    TemporaryFailure
+)
+
 
 class JWTAuthentication(BaseAuthentication):
     """
@@ -49,10 +53,13 @@ class JWTAuthentication(BaseAuthentication):
         except jwt.InvalidTokenError as e:
             logger.debug(f"Decode token error: {e}")
             raise AuthenticationFailed("Invalid token")
+        scopes = claims.get("scope", "")
+        if isinstance(scopes, str):
+            scopes = scopes.split()
         return (
             AuthContext(
-                user_id=claims["sub"],
-                scopes=set(claims.get("scope", "").split()),
+                user_uuid=claims["sub"],
+                scopes=set(scopes),
             ) if claims else None,
             None,
         )
@@ -91,7 +98,12 @@ class JWTAuthentication(BaseAuthentication):
                 f"{settings.JWT_KEYCLOAK_URL}/protocol/openid-connect/certs",
                 cache_keys=True
             )
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            try:
+                signing_key = jwks_client.get_signing_key_from_jwt(token)
+            except (ConnectionError, ConnectionResetError):
+                raise TemporaryFailure(
+                    "Auth server is not available at the moment."
+                )
             return jwt.decode(
                 token,
                 signing_key.key,

@@ -1,3 +1,4 @@
+from uuid import UUID
 from abc import ABC, abstractmethod
 
 from notification_service.application.dtos.user_notification_settings import (
@@ -13,14 +14,14 @@ class UserProviderPort(ABC):
     @abstractmethod
     def get_notification_settings(
             self,
-            user_id: int
+            user_uuid: UUID
     ) -> UserNotificationsSettings:
         """
         Get notification settings for a user.
 
         Parameters
         ----------
-        user_id : int
+        user_uuid : UUID
             ID of the user
 
         Returns

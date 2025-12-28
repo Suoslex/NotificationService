@@ -85,7 +85,7 @@ class EmailNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
         user_provider = get_user_provider()
         user_settings = user_provider.get_notification_settings(
-            notification.user_id
+            notification.user_uuid
         )
         email_address = user_settings.notification_channels.get(
             NotificationType.EMAIL
@@ -93,7 +93,7 @@ class EmailNotificationChannel(NotificationChannel):
 
         if not email_address:
             message = (
-                f"No email address found for user {notification.user_id}"
+                f"No email address found for user {notification.user_uuid}"
             )
             logger.error(message)
             raise UserDoesntHaveTheChannel(message)
@@ -101,7 +101,7 @@ class EmailNotificationChannel(NotificationChannel):
         if not settings.EMAIL_NOTIFICATIONS_ENABLED:
             logger.info(
                 f"Email notifications disabled, "
-                f"skipping for user {notification.user_id}"
+                f"skipping for user {notification.user_uuid}"
             )
             return
 
@@ -158,21 +158,21 @@ class SMSNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
         user_provider = get_user_provider()
         user_settings = user_provider.get_notification_settings(
-            notification.user_id
+            notification.user_uuid
         )
         sms_number = user_settings.notification_channels.get(
             NotificationType.SMS
         )
 
         if not sms_number:
-            message = f"No SMS number found for user {notification.user_id}"
+            message = f"No SMS number found for user {notification.user_uuid}"
             logger.error(message)
             raise UserDoesntHaveTheChannel(message)
 
         if not settings.SMS_NOTIFICATIONS_ENABLED:
             logger.info(
                 f"SMS notifications disabled, "
-                f"skipping for user {notification.user_id}"
+                f"skipping for user {notification.user_uuid}"
             )
             return
         try:
@@ -231,7 +231,7 @@ class PushNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
         user_provider = get_user_provider()
         user_settings = user_provider.get_notification_settings(
-            notification.user_id
+            notification.user_uuid
         )
         push_token = user_settings.notification_channels.get(
             NotificationType.PUSH
@@ -239,16 +239,16 @@ class PushNotificationChannel(NotificationChannel):
             
         if not push_token:
             logger.error(
-                f"No push token found for user {notification.user_id}"
+                f"No push token found for user {notification.user_uuid}"
             )
             raise UserDoesntHaveTheChannel(
-                f"No push token found for user {notification.user_id}"
+                f"No push token found for user {notification.user_uuid}"
             )
 
         if not settings.PUSH_NOTIFICATIONS_ENABLED:
             logger.info(
                 f"Push notifications disabled, "
-                f"skipping for user {notification.user_id}"
+                f"skipping for user {notification.user_uuid}"
             )
             return
 
@@ -326,7 +326,7 @@ class TelegramNotificationChannel(NotificationChannel):
     def send(self, notification: Notification):
         user_provider = get_user_provider()
         user_settings = user_provider.get_notification_settings(
-            notification.user_id
+            notification.user_uuid
         )
         telegram_chat_id = user_settings.notification_channels.get(
             NotificationType.TELEGRAM
@@ -335,7 +335,7 @@ class TelegramNotificationChannel(NotificationChannel):
         if not telegram_chat_id:
             message = (
                 f"No Telegram chat ID found for user "
-                f"{notification.user_id}"
+                f"{notification.user_uuid}"
             )
             logger.error(message)
             raise UserDoesntHaveTheChannel(message)
@@ -343,7 +343,7 @@ class TelegramNotificationChannel(NotificationChannel):
         if not settings.TELEGRAM_NOTIFICATIONS_ENABLED:
             logger.info(
                 f"Telegram notifications disabled, "
-                f"skipping for user {notification.user_id}"
+                f"skipping for user {notification.user_uuid}"
             )
             return
 

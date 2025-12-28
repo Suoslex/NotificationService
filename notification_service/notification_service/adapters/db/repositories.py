@@ -72,7 +72,7 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
         """
         notification = NotificationModel.objects.create(
             uuid=notification.uuid,
-            user_id=notification.user_id,
+            user_uuid=notification.user_uuid,
             title=notification.title,
             text=notification.text,
             type=notification.type,
@@ -102,7 +102,7 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
             NotificationModel.objects
             .filter(uuid=notification.uuid)
             .update(
-                user_id=notification.user_id,
+                user_uuid=notification.user_uuid,
                 title=notification.title,
                 text=notification.text,
                 type=notification.type,
@@ -148,7 +148,7 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
         """
         return Notification(
             uuid=model.uuid,
-            user_id=model.user_id,
+            user_uuid=model.user_uuid,
             title=model.title,
             text=model.text,
             type=model.type,

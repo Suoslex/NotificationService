@@ -37,7 +37,7 @@ def send_notifications():
             return
         try:
             user_settings = user_provider.get_notification_settings(
-                user_id=notification.user_id
+                user_uuid=notification.user_uuid
             )
         except UserNotFound:
             notification.status = NotificationStatus.FAILED

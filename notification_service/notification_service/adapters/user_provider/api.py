@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from notification_service.application.dtos.user_notification_settings import (
     UserNotificationsSettings
 )
@@ -14,15 +16,15 @@ class APIUserProvider(UserProviderPort):
     """
     def get_notification_settings(
             self,
-            user_id: int
+            user_uuid: UUID
     ) -> UserNotificationsSettings:
         """
         Get notification settings for a user from external API.
 
         Parameters
         ----------
-        user_id : int
-            ID of the user
+        user_uuid : UUID
+            UUID of the user
 
         Returns
         ----------
