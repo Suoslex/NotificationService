@@ -1,0 +1,82 @@
+{
+  "realm": "myrealm",
+  "enabled": true,
+  "requiredActions": [
+    { "alias": "VERIFY_EMAIL", "enabled": false },
+    { "alias": "UPDATE_PROFILE", "enabled": false },
+    { "alias": "UPDATE_PASSWORD", "enabled": false },
+    { "alias": "TERMS_AND_CONDITIONS", "enabled": false }
+  ],
+  "clients": [
+    {
+      "clientId": "notification-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "fullScopeAllowed": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "dev-secret",
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "notifications:send"
+      ],
+      "attributes": {
+        "access.token.lifespan": "6000"
+      },
+      "protocolMappers": [
+        {
+          "name": "scope-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "claim.name": "scope",
+            "jsonType.label": "JSON",
+            "access.token.claim": "true",
+            "multivalued": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "notifications:send",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "scope-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "config": {
+            "claim.name": "scope",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "multivalued": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "user",
+      "enabled": true,
+      "email": "user@example.com",
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

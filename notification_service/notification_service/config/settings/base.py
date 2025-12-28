@@ -153,6 +153,16 @@ CELERY_BROKER_URL = (
 
 
 # JWT
+JWT_KEYCLOAK_ENABLED = os.getenv("JWT_KEYCLOAK_ENABLED", "False") != "False"
+JWT_KEYCLOAK_HOST = os.getenv("JWT_KEYCLOAK_HOST", "localhost")
+JWT_KEYCLOAK_PORT = os.getenv("JWT_KEYCLOAK_PORT", "8080")
+JWT_KEYCLOAK_REALM = os.getenv("JWT_KEYCLOAK_REALM", "myrealm")
+
+JWT_KEYCLOAK_URL = (
+    f"http://{JWT_KEYCLOAK_HOST}:{JWT_KEYCLOAK_PORT}"
+    f"/realms/{JWT_KEYCLOAK_REALM}"
+)
+
 JWT_AUTH_ENABLED = os.getenv("JWT_AUTH_ENABLED", "False") != "False"
 JWT_AUDIENCE = os.getenv("JWT_AUDIENCE", "notification-service")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "RS256")

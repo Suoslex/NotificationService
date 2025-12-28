@@ -1,5 +1,6 @@
 import jwt
 from django.conf import settings
+from loguru import logger
 from rest_framework.request import Request
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
@@ -36,23 +37,23 @@ class JWTAuthentication(BaseAuthentication):
         token = self._extract_bearer_token(request)
         if token is None:
             return None
-
+        # TODO: Logs
         try:
-            claims = jwt.decode(
-                token,
-                settings.JWT_PUBLIC_KEY,
-                audience=settings.JWT_AUDIENCE,
-                algorithms=[settings.JWT_ALGORITHM]
-            )
-        except jwt.ExpiredSignatureError:
+            claims = self._decode_token(token)
+        except jwt.PyJWKClientError as e:
+            logger.debug(f"Decode token error: {e}")
+            raise AuthenticationFailed("The token is invalid.")
+        except jwt.ExpiredSignatureError as e:
+            logger.debug(f"Decode token error: {e}")
             raise AuthenticationFailed("Token expired")
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
+            logger.debug(f"Decode token error: {e}")
             raise AuthenticationFailed("Invalid token")
         return (
             AuthContext(
                 user_id=claims["sub"],
                 scopes=set(claims.get("scope", "").split()),
-            ),
+            ) if claims else None,
             None,
         )
 
@@ -83,6 +84,28 @@ class JWTAuthentication(BaseAuthentication):
             return None
 
         return token
+
+    def _decode_token(self, token: str) -> dict | None:
+        if settings.JWT_KEYCLOAK_ENABLED:
+            jwks_client = jwt.PyJWKClient(
+                f"{settings.JWT_KEYCLOAK_URL}/protocol/openid-connect/certs",
+                cache_keys=True
+            )
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            return jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=[settings.JWT_ALGORITHM],
+            )
+        elif settings.JWT_AUTH_ENABLED:
+            return jwt.decode(
+                token,
+                settings.JWT_PUBLIC_KEY,
+                audience=settings.JWT_AUDIENCE,
+                algorithms=[settings.JWT_ALGORITHM]
+            )
+        return None
+
 
 
 class HasScope(BasePermission):
