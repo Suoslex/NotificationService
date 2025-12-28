@@ -38,19 +38,28 @@ class JWTAuthentication(BaseAuthentication):
         AuthenticationFailed
             If token is expired or invalid
         """
+        logger.debug("Starting JWT authentication")
         token = self._extract_bearer_token(request)
         if token is None:
+            logger.debug("No token found in request header")
             return None
-        # TODO: Logs
+        logger.debug("Token extracted, attempting to decode")
         claims = self._decode_token(token)
+        if not claims:
+            logger.debug("Token decoding failed, returning None")
+            return None
         scopes = claims.get("scope", "")
         if isinstance(scopes, str):
             scopes = scopes.split()
+        logger.debug(
+            f"Successfully authenticated user "
+            f"{claims['sub']} with scopes: {scopes}"
+        )
         return (
             AuthContext(
                 user_uuid=claims["sub"],
                 scopes=set(scopes),
-            ) if claims else None,
+            ),
             None,
         )
 
@@ -68,47 +77,62 @@ class JWTAuthentication(BaseAuthentication):
         str | None
             Bearer token or None if token is not found or invalid format
         """
+        logger.debug("Extracting bearer token from request header")
         auth_header = request.headers.get("Authorization")
         if not auth_header:
+            logger.debug("Authorization header not found")
             return None
 
         parts = auth_header.split()
         if len(parts) != 2:
+            logger.debug(f"Invalid authorization header format: {auth_header}")
             return None
 
         scheme, token = parts
         if scheme.lower() != "bearer":
+            logger.debug(f"Invalid scheme in authorization header: {scheme}")
             return None
 
+        logger.debug("Successfully extracted bearer token")
         return token
 
     def _decode_token(self, token: str) -> dict | None:
+        logger.debug("Decoding JWT token")
         if settings.JWT_KEYCLOAK_ENABLED:
             try:
-                return keycloak_openid.decode_token(token)
+                logger.debug("Using Keycloak to decode token")
+                result = keycloak_openid.decode_token(token)
+                logger.debug("Token successfully decoded with Keycloak")
+                return result
             except KeycloakGetError as e:
+                logger.error(f"Keycloak token validation failed: {e}")
                 raise AuthenticationFailed(
                     f"Token is invalid (most likely user_id is not found)"
                 )
             except KeycloakError as e:
+                logger.error(f"Keycloak error during token decoding: {e}")
                 raise AuthenticationFailed(f"Keycloak error: {e}")
             except Exception as e:
-                logger.debug(f"Couldn't decode token with keycloak: {e}")
+                logger.error(f"Couldn't decode token with keycloak: {e}")
                 raise AuthenticationFailed("Invalid token")
         elif settings.JWT_AUTH_ENABLED:
             try:
-                return jwt.decode(
+                logger.debug("Using local JWT decoding")
+                result = jwt.decode(
                     token,
                     settings.JWT_PUBLIC_KEY,
                     audience=settings.JWT_AUDIENCE,
                     algorithms=[settings.JWT_ALGORITHM]
                 )
+                logger.debug("Token successfully decoded locally")
+                return result
             except jwt.ExpiredSignatureError as e:
-                logger.debug(f"Decode token error: {e}")
+                logger.warning(f"Token expired: {e}")
                 raise AuthenticationFailed("Token expired")
             except jwt.InvalidTokenError as e:
-                logger.debug(f"Decode token error: {e}")
+                logger.warning(f"Invalid token: {e}")
                 raise AuthenticationFailed("Invalid token")
+        logger.debug("JWT authentication is not enabled")
         return None
 
 
@@ -137,12 +161,24 @@ class HasScope(BasePermission):
         bool
             True if user has required scope, False otherwise.
         """
+        logger.debug(
+            f"Checking permission "
+            f"for required scope: {view.required_scope}"
+        )
         if not settings.JWT_AUTH_ENABLED:
+            logger.debug("JWT auth disabled, granting permission")
             return True
 
         auth = request.user
+        logger.debug(f"Checking user: {auth}")
 
         if not hasattr(auth, "has"):
+            logger.debug("User doesn't have 'has' method, denying permission")
             return False
 
-        return auth.has(view.required_scope)
+        has_scope = auth.has(view.required_scope)
+        logger.debug(
+            f"User required scope {view.required_scope} "
+            f"check: {has_scope}"
+        )
+        return has_scope

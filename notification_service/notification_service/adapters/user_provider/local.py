@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from loguru import logger
+
 from notification_service.domain.enums import NotificationType
 from notification_service.application.ports.exceptions.user_provider import (
     UserNotFound
@@ -40,9 +42,19 @@ class LocalUserProvider(UserProviderPort):
         UserNotFound
             If user is not found in local storage
         """
+        logger.debug(
+            f"Fetching notification settings for user {user_uuid} "
+            "from local storage"
+        )
         if user_uuid not in self._local_users:
+            logger.warning(f"User {user_uuid} not found in local storage")
             raise UserNotFound()
-        return self._local_users[user_uuid]
+        settings = self._local_users[user_uuid]
+        logger.debug(
+            f"Retrieved notification settings "
+            f"for user {user_uuid}: {settings}"
+        )
+        return settings
 
     _local_users = {
         UUID("00000000-0000-0000-0000-000000000000"): (

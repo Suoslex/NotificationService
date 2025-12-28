@@ -61,7 +61,8 @@ class KeycloakUserProvider(UserProviderPort):
             raise UserNotFound(f"User {user_uuid} not found in Keycloak")
         except (KeycloakError, KeycloakConnectionError) as e:
             logger.error(
-                f"Couldn't connect to Keycloak server for user {user_uuid}: {e}"
+                f"Couldn't connect to Keycloak "
+                f"server for user {user_uuid}: {e}"
             )
             raise TemporaryFailure("Cannot connect to Keycloak server")
 

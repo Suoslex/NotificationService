@@ -1,3 +1,5 @@
+from loguru import logger
+
 from notification_service.application.dtos.notification_status import (
     NotificationStatusDTO
 )
@@ -36,17 +38,42 @@ class SendNotificationUseCase:
         NotificationStatusDTO
             Status information of the notification
         """
+        logger.debug(
+            f"Executing send notification use case for notification "
+            f"{notification.uuid}"
+        )
         was_created = False
         if self.uow.notification_repo.exists(notification.uuid):
+            logger.debug(
+                f"Notification {notification.uuid} already exists, "
+                f"fetching existing"
+            )
             notification = self.uow.notification_repo.get_by_uuid(
                 notification.uuid
             )
+            logger.debug(
+                f"Fetched existing notification {notification.uuid} "
+                f"with status {notification.status}"
+            )
         else:
+            logger.debug(
+                f"Notification {notification.uuid} is new, "
+                f"creating in repository"
+            )
             with self.uow:
                 notification = self.uow.notification_repo.create(notification)
             was_created = True
-        return NotificationStatusDTO(
+            logger.debug(
+                f"Created new notification {notification.uuid} "
+                f"with status {notification.status}"
+            )
+        result = NotificationStatusDTO(
             uuid=notification.uuid,
             status=notification.status,
             was_created=was_created
         )
+        logger.debug(
+            f"Returning notification status DTO for "
+            f"{notification.uuid}: {result}"
+        )
+        return result

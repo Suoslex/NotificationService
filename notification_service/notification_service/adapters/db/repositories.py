@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from loguru import logger
+
 from notification_service.application.ports.repositories import (
     NotificationRepositoryPort
 )
@@ -30,7 +32,10 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
         bool
             True if notification exists, False otherwise
         """
-        return NotificationModel.objects.filter(uuid=uuid).exists()
+        logger.debug(f"Checking if notification exists with UUID: {uuid}")
+        exists = NotificationModel.objects.filter(uuid=uuid).exists()
+        logger.debug(f"Notification with UUID {uuid} exists: {exists}")
+        return exists
 
     def get_by_uuid(self, uuid: UUID) -> Notification:
         """
@@ -51,10 +56,14 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
         ObjectNotFoundInRepository
             If notification is not found
         """
+        logger.debug(f"Fetching notification by UUID: {uuid}")
         obj = NotificationModel.objects.filter(uuid=uuid).first()
         if not obj:
+            logger.warning(f"Notification with UUID {uuid} not found")
             raise ObjectNotFoundInRepository()
-        return self._model_to_entity(obj)
+        notification = self._model_to_entity(obj)
+        logger.debug(f"Fetched notification: {notification}")
+        return notification
 
     def create(self, notification: Notification) -> Notification:
         """
@@ -70,14 +79,17 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
         Notification
             Created notification object
         """
-        notification = NotificationModel.objects.create(
+        logger.debug(f"Creating new notification: {notification.uuid}")
+        notification_model = NotificationModel.objects.create(
             uuid=notification.uuid,
             user_uuid=notification.user_uuid,
             title=notification.title,
             text=notification.text,
             type=notification.type,
         )
-        return self._model_to_entity(notification)
+        result = self._model_to_entity(notification_model)
+        logger.debug(f"Created notification: {result}")
+        return result
 
     def update(self, notification: Notification) -> Notification:
         """
@@ -98,6 +110,7 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
         ObjectNotFoundInRepository
             If notification is not found for update
         """
+        logger.debug(f"Updating notification: {notification.uuid}")
         updated = (
             NotificationModel.objects
             .filter(uuid=notification.uuid)
@@ -110,18 +123,25 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
             )
         )
         if not updated:
+            logger.warning(
+                f"Failed to update notification "
+                f"{notification.uuid}, not found"
+            )
             raise ObjectNotFoundInRepository()
+        logger.debug(f"Updated notification: {notification}")
         return notification
 
     def get_pending_for_update(self) -> Notification | None:
         """
-        Get pending notification for update, locking a row while transaction is alive.
+        Get pending notification for update,
+        locking a row while transaction is alive.
 
         Returns
         ----------
         Notification | None
             Notification object or None, if there are no pending notifications 
         """
+        logger.debug("Fetching pending notification for update")
         obj = (
             NotificationModel.objects
             .select_for_update(skip_locked=True)
@@ -129,7 +149,12 @@ class DjangoNotificationRepository(NotificationRepositoryPort):
             .order_by("created_at")
             .first()
         )
-        return self._model_to_entity(obj) if obj else None
+        result = self._model_to_entity(obj) if obj else None
+        if result:
+            logger.debug(f"Fetched pending notification: {result.uuid}")
+        else:
+            logger.debug("No pending notifications found")
+        return result
 
     @staticmethod
     def _model_to_entity(model: NotificationModel) -> Notification:

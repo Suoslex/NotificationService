@@ -38,6 +38,7 @@ def get_notification_channel(
     ValueError
         If notification type is not supported
     """
+    logger.debug(f"Getting notification channel for type: {notification_type}")
     channels = {
         NotificationType.EMAIL: EmailNotificationChannel(),
         NotificationType.SMS: SMSNotificationChannel(),
@@ -45,10 +46,13 @@ def get_notification_channel(
         NotificationType.TELEGRAM: TelegramNotificationChannel()
     }
     if notification_type not in channels:
-        raise ValueError(
+        message = (
             f"Notification type {notification_type} is not supported "
             f"by any notification channel."
         )
+        logger.error(message)
+        raise ValueError(message)
+    logger.debug(f"Successfully retrieved channel for type: {notification_type}")
     return channels[notification_type]
 
 
@@ -83,9 +87,19 @@ class EmailNotificationChannel(NotificationChannel):
     type = NotificationType.EMAIL
     
     def send(self, notification: Notification):
+        logger.debug(
+            f"Sending email notification {notification.uuid} "
+            f"to user {notification.user_uuid}"
+        )
         user_provider = get_user_provider()
+        logger.debug(
+            f"Fetching user settings for user {notification.user_uuid}"
+        )
         user_settings = user_provider.get_notification_settings(
             notification.user_uuid
+        )
+        logger.debug(
+            f"Retrieved user settings: {user_settings.notification_channels}"
         )
         email_address = user_settings.notification_channels.get(
             NotificationType.EMAIL
@@ -97,6 +111,11 @@ class EmailNotificationChannel(NotificationChannel):
             )
             logger.error(message)
             raise UserDoesntHaveTheChannel(message)
+        
+        logger.debug(
+            f"Found email address {email_address} "
+            f"for user {notification.user_uuid}"
+        )
 
         if not settings.EMAIL_NOTIFICATIONS_ENABLED:
             logger.info(
@@ -106,11 +125,19 @@ class EmailNotificationChannel(NotificationChannel):
             return
 
         try:
+            logger.debug(
+                f"Attempting to send email to {email_address} "
+                f"for notification {notification.uuid}"
+            )
             self._send_email(
                 to_email=email_address,
                 subject=notification.title or "Notification",
                 body=notification.text,
                 from_email=settings.EMAIL_NOTIFICATIONS_FROM_ADDRESS
+            )
+            logger.debug(
+                f"Email sent successfully to {email_address} for notification "
+                f"{notification.uuid}"
             )
         except smtplib.SMTPException as e:
             message = f"SMTP error: {str(e)}"
@@ -156,9 +183,19 @@ class SMSNotificationChannel(NotificationChannel):
     type = NotificationType.SMS
     
     def send(self, notification: Notification):
+        logger.debug(
+            f"Sending SMS notification {notification.uuid} "
+            f"to user {notification.user_uuid}"
+        )
         user_provider = get_user_provider()
+        logger.debug(
+            f"Fetching user settings for user {notification.user_uuid}"
+        )
         user_settings = user_provider.get_notification_settings(
             notification.user_uuid
+        )
+        logger.debug(
+            f"Retrieved user settings: {user_settings.notification_channels}"
         )
         sms_number = user_settings.notification_channels.get(
             NotificationType.SMS
@@ -168,6 +205,10 @@ class SMSNotificationChannel(NotificationChannel):
             message = f"No SMS number found for user {notification.user_uuid}"
             logger.error(message)
             raise UserDoesntHaveTheChannel(message)
+        
+        logger.debug(
+            f"Found SMS number {sms_number} for user {notification.user_uuid}"
+        )
 
         if not settings.SMS_NOTIFICATIONS_ENABLED:
             logger.info(
@@ -176,9 +217,17 @@ class SMSNotificationChannel(NotificationChannel):
             )
             return
         try:
+            logger.debug(
+                f"Attempting to send SMS to {sms_number} for notification "
+                f"{notification.uuid}"
+            )
             self._send_sms(
                 to_number=sms_number,
                 message=notification.text
+            )
+            logger.debug(
+                f"SMS sent successfully to {sms_number} for notification "
+                f"{notification.uuid}"
             )
         except RequestException as e:
             message = f"Failed to send SMS: {str(e)}"
@@ -229,21 +278,32 @@ class PushNotificationChannel(NotificationChannel):
     type = NotificationType.PUSH
     
     def send(self, notification: Notification):
+        logger.debug(
+            f"Sending push notification {notification.uuid} "
+            f"to user {notification.user_uuid}"
+        )
         user_provider = get_user_provider()
+        logger.debug(
+            f"Fetching user settings for user {notification.user_uuid}"
+        )
         user_settings = user_provider.get_notification_settings(
             notification.user_uuid
+        )
+        logger.debug(
+            f"Retrieved user settings: {user_settings.notification_channels}"
         )
         push_token = user_settings.notification_channels.get(
             NotificationType.PUSH
         )
             
         if not push_token:
-            logger.error(
-                f"No push token found for user {notification.user_uuid}"
-            )
-            raise UserDoesntHaveTheChannel(
-                f"No push token found for user {notification.user_uuid}"
-            )
+            message = f"No push token found for user {notification.user_uuid}"
+            logger.error(message)
+            raise UserDoesntHaveTheChannel(message)
+        
+        logger.debug(
+            f"Found push token {push_token} for user {notification.user_uuid}"
+        )
 
         if not settings.PUSH_NOTIFICATIONS_ENABLED:
             logger.info(
@@ -253,11 +313,19 @@ class PushNotificationChannel(NotificationChannel):
             return
 
         try:
+            logger.debug(
+                f"Attempting to send push notification to {push_token} for "
+                f"notification {notification.uuid}"
+            )
             self._send_push(
                 push_token=push_token,
                 title=notification.title,
                 body=notification.text,
                 notification_uuid=notification.uuid,
+            )
+            logger.debug(
+                f"Push notification sent successfully to {push_token} for "
+                f"notification {notification.uuid}"
             )
             
             logger.info(
@@ -324,9 +392,19 @@ class TelegramNotificationChannel(NotificationChannel):
     type = NotificationType.TELEGRAM
 
     def send(self, notification: Notification):
+        logger.debug(
+            f"Sending Telegram notification {notification.uuid} "
+            f"to user {notification.user_uuid}"
+        )
         user_provider = get_user_provider()
+        logger.debug(
+            f"Fetching user settings for user {notification.user_uuid}"
+        )
         user_settings = user_provider.get_notification_settings(
             notification.user_uuid
+        )
+        logger.debug(
+            f"Retrieved user settings: {user_settings.notification_channels}"
         )
         telegram_chat_id = user_settings.notification_channels.get(
             NotificationType.TELEGRAM
@@ -339,6 +417,11 @@ class TelegramNotificationChannel(NotificationChannel):
             )
             logger.error(message)
             raise UserDoesntHaveTheChannel(message)
+        
+        logger.debug(
+            f"Found Telegram chat ID {telegram_chat_id} for user "
+            f"{notification.user_uuid}"
+        )
 
         if not settings.TELEGRAM_NOTIFICATIONS_ENABLED:
             logger.info(
@@ -348,10 +431,18 @@ class TelegramNotificationChannel(NotificationChannel):
             return
 
         try:
+            logger.debug(
+                f"Attempting to send Telegram message to {telegram_chat_id} "
+                f"for notification {notification.uuid}"
+            )
             self._send_message_in_telegram(
                 chat_id=telegram_chat_id,
                 title=notification.title,
                 body=notification.text,
+            )
+            logger.debug(
+                f"Telegram message sent successfully to {telegram_chat_id} "
+                f"for notification {notification.uuid}"
             )
         except RequestException as e:
             message = f"Failed to send Telegram message: {str(e)}"
