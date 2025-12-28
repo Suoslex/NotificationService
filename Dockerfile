@@ -1,4 +1,5 @@
-FROM python:3.13.11-alpine
+FROM python:3.13.11-slim
+RUN apt-get update && apt-get install -y libpq-dev gcc
 
 WORKDIR /app
 
@@ -11,4 +12,6 @@ COPY .env .
 
 WORKDIR /app/notification_service
 ENV PATH="/app/.venv/bin:$PATH"
-CMD ["gunicorn", "notification_service.config.wsgi", "--bind", "0.0.0.0:8000"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

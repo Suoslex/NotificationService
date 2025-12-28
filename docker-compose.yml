@@ -3,16 +3,18 @@ services:
     build: .
     ports:
       - "8000:8000"
+    depends_on:
+      - db
 
   notification_worker:
     build: .
-    command: ["celery", "-A", "notification_service.config", "worker"]
+    entrypoint: ["celery", "-A", "notification_service.config", "worker"]
     depends_on:
       - rabbitmq
 
   notification_scheduler:
     build: .
-    command: ["celery", "-A", "notification_service.config", "beat"]
+    entrypoint: ["celery", "-A", "notification_service.config", "beat"]
     depends_on:
       - rabbitmq
 
@@ -36,3 +38,15 @@ services:
       - "8080:8080"
     volumes:
       - ./keycloak/realm.json:/opt/keycloak/data/import/realm.json
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: notification-service
+    ports:
+      - "5432:5432"
+    volumes:
+      - .data/postgres_data:/var/lib/postgresql/data

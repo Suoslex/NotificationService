@@ -80,7 +80,8 @@ class NotificationRepositoryPort(ABC):
     @abstractmethod
     def get_pending_for_update(self) -> Notification | None:
         """
-        Get pending notification for update, locking a row while transaction is alive.
+        Get pending notification for update,
+        locking a row while transaction is alive.
 
         Returns
         ----------

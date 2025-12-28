@@ -33,7 +33,7 @@ def send_notifications():
         notification = uow.notification_repo.get_pending_for_update()
         logger.debug(f"Fetched notification: {notification}")
         if not notification:
-            logger.info("No notification is pending right now.")
+            logger.debug("No notification is pending right now.")
             return
         try:
             user_settings = user_provider.get_notification_settings(
