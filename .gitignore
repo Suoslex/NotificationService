@@ -8,3 +8,4 @@
 **/.DS_Store
 **/celerybeat-schedule*
 **/*.pem
+**/.test.py

@@ -52,7 +52,9 @@ def get_notification_channel(
         )
         logger.error(message)
         raise ValueError(message)
-    logger.debug(f"Successfully retrieved channel for type: {notification_type}")
+    logger.debug(
+        f"Successfully retrieved channel for type: {notification_type}"
+    )
     return channels[notification_type]
 
 
