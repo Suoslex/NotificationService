@@ -47,3 +47,4 @@ class TestSendNotificationViewAdditional:
 
         with pytest.raises(ValidationError):
             view.post(request)
+

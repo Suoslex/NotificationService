@@ -73,3 +73,4 @@ class TestNotification:
 
         assert notification.uuid == uuid
         assert notification.user_uuid == user_uuid
+

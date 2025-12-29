@@ -5,6 +5,9 @@ from notification_service.adapters.dependencies import (
     get_unit_of_work,
     get_user_provider
 )
+from notification_service.application.ports.exceptions.base import (
+    NotificationServiceError
+)
 from notification_service.application.ports.exceptions.workers import (
     NotificationChannelError
 )
@@ -17,7 +20,12 @@ from notification_service.adapters.workers.notification_channels import (
 )
 
 
-@shared_task(autoretry_for=(Exception,), retry_backoff=5)
+@shared_task(
+    autoretry_for=(NotificationServiceError,),
+    retry_backoff_max=500,
+    retry_backoff=5,
+    max_retries=5
+)
 def send_notifications():
     """
     Celery task to send pending notifications.

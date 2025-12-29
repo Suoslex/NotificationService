@@ -136,3 +136,4 @@ class TestNotificationWorkerError:
         custom_msg = "Custom worker error"
         error = NotificationWorkerError(custom_msg)
         assert str(error) == custom_msg
+

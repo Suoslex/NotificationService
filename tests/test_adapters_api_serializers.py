@@ -76,3 +76,4 @@ class TestNotificationSerializer:
         assert "type" in data
         assert data["title"] == "Test Title"
         assert data["text"] == "Test Text"
+

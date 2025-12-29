@@ -122,3 +122,4 @@ class TestSendNotificationUseCase:
 
         assert result.uuid == notification.uuid
         assert result.was_created is True
+

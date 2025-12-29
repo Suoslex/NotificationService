@@ -58,3 +58,4 @@ class TestGetUnitOfWork:
         uow = get_unit_of_work()
 
         assert isinstance(uow, DjangoUnitOfWork)
+
