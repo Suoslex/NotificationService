@@ -5,6 +5,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - keycloak
 
   notification_worker:
     build: .
@@ -38,6 +39,12 @@ services:
       - "8080:8080"
     volumes:
       - ./keycloak/realm.json:/opt/keycloak/data/import/realm.json
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\\r\\nhost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3;grep 'HTTP/1.1 200 OK' <&3" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   db:
     image: postgres:15

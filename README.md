@@ -100,10 +100,11 @@
 **Тело запроса:**
 ```json
 {
-  "user_uuid": "string",
+  "uuid": "string" | int,
+  "user_uuid": "string" | int,
   "title": "string",
   "text": "string",
-  "type": "EMAIL" | "SMS" | "PUSH" | "TELEGRAM" | null
+  "type": "email" | "sms" | "push" | "telegram" | null
 }
 ```
 
@@ -113,17 +114,18 @@ curl -X POST http://localhost:8000/api/v1/notifications/ \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-token>" \
   -d '{
-    "user_uuid": "0",
+    "uuid": 0,
+    "user_uuid": 0,
     "title": "Новое уведомление",
     "text": "Текст уведомления",
-    "type": "EMAIL"
+    "type": "email"
   }'
 ```
 
 **Ответ:**
 ```json
 {
-  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "uuid": "00000000-0000-0000-0000-000000000000",
   "was_created": true,
   "status": "PENDING"
 }
@@ -207,7 +209,7 @@ JWT_PUBLIC_KEY=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBU
 И следующий токен, который подписан на очень долгое время:
 
 ```
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLXByb3ZpZGVyIiwic3ViIjoiMCIsImF1ZCI6Im5vdGlmaWNhdGlvbi1zZXJ2aWNlIiwiaWF0IjoxNzY2OTc5NDYyLCJleHAiOjEwNDA2OTc5NDYyLCJqdGkiOiJlZmI3ZjE3NC1hMmQyLTRhOTItYjViMy01OWVkZmVkMzAyOGMiLCJzY29wZSI6Im5vdGlmaWNhdGlvbnM6c2VuZCJ9.ulgzA-ZrPyxuRg3FO6nDlOLKJ4kCg1rabdArU3FXQ75GXf01dUjRFXmKrTSr5GXS_39LY4WdNpd1a-wXmjlNyOl9aY4ai2ZTb8Oed57DPQXn9zEh_gem9S__9h_Y3xuI3Pn0JS9pIBi_ucK5TqC5DTGtby2KEy-w-HO8fheCbsAEcvXmwY9ecZpCNywUcjFVSQBJS5kAAjljgkqHAQaROjuTRaZCPYNuRRbpjOtke5a8bfhlvO0znDBBjuMVaDQAP15GCfqfsnSO6_c81VNNM4RWwpUaoPsfbxYrb0tgZPuf1Akxw7n6wBdRio-nTtmPSuHktfiixOGfhzrukTOI-OPmHf0MDlxDXC3gTyHcV7w0oVbOVHW3FePMgUPbXUggB1UZJfOJ81xymjhAzB6_YLw4hZzI7tIboiqeuNLNH6o_1PQ0T1IyRegeO8I8KW8gKSFtdbTWf4dY6iN3m7rqW4SvNWTxTm5fHSgvPbgt7DMht41iP_ms949Ogs3tf6_Z7jgDqFJhhlp8bMAf9kbfL5LBvQbX-Bm5EkDdI8akMr7VpgdCY-SvkRh8M2oGZrPSyZZ-vUGd6F3_nBP6kEKIrU7rC7x6HOrOMBlmckJ7Ggc8kBz9IzkhttVJU94Aun8XQNudWw9y2tknnHmu_eyY5fhRty9QrWgMDID6rqTaPoA
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLXByb3ZpZGVyIiwic3ViIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiYXVkIjoibm90aWZpY2F0aW9uLXNlcnZpY2UiLCJpYXQiOjE3NjY5ODYxMTUsImV4cCI6MTA0MDY5ODYxMTUsImp0aSI6ImE3YmUzODRlLTBmMjktNGJhZi05YWMyLTQxMzE3MzBhOWM3OCIsInNjb3BlIjoibm90aWZpY2F0aW9uczpzZW5kIn0.oUEMUJtT-k-U4fce4o-ZVTrbXvF6t4S0COUN7TVa5MfJ23L5MWnArgseCTcqS9lIYNZHKeYXNbyuzu8-L6ha92gycwi_BnSbR6UAlTgzuxmIDC_y47lSGRP3j4ov40t9S4-Q4nxrPNaKPvnWc8sLwPzOBYFzZ3SfKERSyHygyjOBI2TOukpJupqBfdV6rrZDbi7XyBMhcZJ5B1LpWxS5DBShhKZmnQcI-vmqyo7458jibRFasXI3XknBABT6pWuQ5bfQhBkAkcIKwZzfbctXeZoX3FR6fC8JJ95hXDEJxQMx-cp9uVVdgc0ohuK6tB5FLkdNcpLDhm5KCT_MN6yxW3gQc7r4vW8Ydgap3Ul7nOs2wn_nKF6OxkOvz0pSsbg9XaLY3MZd2DNliRVjEq8CHgykqq7Wdl2yC3ej3Pv2VEuhVbLL7auzRDluF7uBeXF8MQcO1NJYoCy8Kr2jiSw553QbzAFxFjGs0ZC8yEVAY2y68669k9swBjaVzJ08sHEmSmlI-4jBFqP82zUGSbDilcnCMbJXQenAW__sXy-YJCGfM06EfyljDp5G2rtfDkt15vfyFnwedkVTbMNahGqz0WNly9MS74iMItooPu2j8InkQcz_RCmgEqsZTb__ZQ_qP507U1HYlumc6mBCV4BQzsiioMabbkbjOEmTwFVs5Uc
 ```
 
 ## Тестирование
