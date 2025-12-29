@@ -88,7 +88,7 @@ def send_notifications():
             if user_settings.preferred_notification_channel:
                 notification_channel_types.insert(
                     0,
-                    notification_channel_types
+                    user_settings.preferred_notification_channel
                 )
         
         logger.debug(

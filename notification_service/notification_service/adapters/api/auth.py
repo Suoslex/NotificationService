@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import jwt
 from django.conf import settings
 from keycloak import KeycloakGetError
@@ -57,7 +59,7 @@ class JWTAuthentication(BaseAuthentication):
         )
         return (
             AuthContext(
-                user_uuid=claims["sub"],
+                user_uuid=UUID(claims["sub"]),
                 scopes=set(scopes),
             ),
             None,
