@@ -26,8 +26,6 @@ class SendNotificationView(APIView):
     required_scope = "notifications:send"
     serializer_class = serializers.NotificationSerializer
 
-    # TODO: RateLimit
-
     def post(self, request: Request) -> Response:
         logger.debug("Received POST request to send notification")
         logger.debug(f"Request data: {request.data}")

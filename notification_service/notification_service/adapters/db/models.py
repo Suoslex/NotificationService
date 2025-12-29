@@ -24,9 +24,8 @@ class NotificationModel(models.Model):
     Notification model.
     Stores notification information in the database.
     """
-    # TODO: Indexes
 
-    uuid: UUID = models.UUIDField()
+    uuid: UUID = models.UUIDField(db_index=True)
     user_uuid: UUID = models.UUIDField()
     title: str = models.CharField()
     text: str = models.CharField()
@@ -41,6 +40,15 @@ class NotificationModel(models.Model):
     )
     sent_at: datetime = models.DateTimeField(null=True, default=None)
     created_at: datetime = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["created_at"],
+                name="idx_pending_created_at",
+                condition=models.Q(status=_NotificationStatusChoices.PENDING),
+            ),
+        ]
 
 
 

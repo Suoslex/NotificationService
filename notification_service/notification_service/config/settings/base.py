@@ -128,6 +128,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 environment = os.environ.get('DJANGO_ENVIRONMENT', 'local')
@@ -138,6 +139,17 @@ os.environ.setdefault(
     'DJANGO_SETTINGS_MODULE',
     f'notification_service.config.settings.{environment}'
 )
+
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/min",
+        "user": "120/min",
+    },
+}
 
 # Celery
 CELERY_BEAT_SCHEDULE = {
@@ -205,15 +217,25 @@ EMAIL_NOTIFICATIONS_FROM_ADDRESS = (
 )
 
 # SMS notification settings
-SMS_NOTIFICATIONS_ENABLED = os.getenv("SMS_NOTIFICATIONS_ENABLED", "True") != "False"
+SMS_NOTIFICATIONS_ENABLED = (
+    os.getenv("SMS_NOTIFICATIONS_ENABLED", "True") != "False"
+)
 SMS_NOTIFICATIONS_SERVICE_URL = os.getenv("SMS_NOTIFICATIONS_SERVICE_URL", "")
 SMS_NOTIFICATIONS_API_KEY = os.getenv("SMS_NOTIFICATIONS_API_KEY", "")
 
 # Push notification settings
-PUSH_NOTIFICATIONS_ENABLED = os.getenv("PUSH_NOTIFICATIONS_ENABLED", "True") != "False"
-PUSH_NOTIFICATIONS_SERVICE_URL = os.getenv("PUSH_NOTIFICATIONS_SERVICE_URL", "")
+PUSH_NOTIFICATIONS_ENABLED = (
+    os.getenv("PUSH_NOTIFICATIONS_ENABLED", "True") != "False"
+)
+PUSH_NOTIFICATIONS_SERVICE_URL = (
+    os.getenv("PUSH_NOTIFICATIONS_SERVICE_URL", "")
+)
 PUSH_NOTIFICATIONS_API_KEY = os.getenv("PUSH_NOTIFICATIONS_API_KEY", "")
 
 # Telegram notification settings
-TELEGRAM_NOTIFICATIONS_ENABLED = os.getenv("TELEGRAM_NOTIFICATIONS_ENABLED", "True") != "False"
-TELEGRAM_NOTIFICATIONS_BOT_TOKEN = os.getenv("TELEGRAM_NOTIFICATIONS_BOT_TOKEN", "")
+TELEGRAM_NOTIFICATIONS_ENABLED = (
+    os.getenv("TELEGRAM_NOTIFICATIONS_ENABLED", "True") != "False"
+)
+TELEGRAM_NOTIFICATIONS_BOT_TOKEN = (
+    os.getenv("TELEGRAM_NOTIFICATIONS_BOT_TOKEN", "")
+)
