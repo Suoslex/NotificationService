@@ -4,14 +4,30 @@
 Может быть использован как полноценный сервис, так и как 
 микросервис в составе распределенной системы.
 
+## Содержание
+
+- [Установка и запуск](#установка-и-запуск)
+- [API](#api)
+- [Аутентификация](#аутентификация)
+- [Особенности реализации](#особенности-реализации)
+- [Тестирование](#тестирование)
+- [Разработка](#разработка)
+
 ## Установка и запуск
 
-Убедитесь, что у вас установилен **docker** на устройстве.
+### Требования
+
+- Docker и Docker Compose (для запуска через Docker)
+- Python 3.13+ (для локального запуска)
+
+### Запуск через Docker (рекомендуется)
 
 1. Создайте файл `.env` на основе `.env.example`:
-    ```bash
+
+   ```bash
    cp .env.example .env
    ```
+
 2. Для тестового запуска в нем уже заполнены все необходимые данные.
    По умолчанию, любая аутентификация (Keycloak, JWT) отключена для 
    простоты использования.
@@ -24,30 +40,109 @@
 
 4. API доступно по адресу `http://localhost:8000/api/v1/notifications/`
 
+### Локальный запуск (без Docker)
 
-5. При желании, можно запустить проект без докера. Для этого установите 
-   необходимые зависимости с помощью pip:
-
+1. Установите зависимости:
+   
+   С помощью pip:
    ```bash
    python -m venv .venv
-   source .venv/bin/activate
-   python -m pip install -r requirements.txt 
+   source .venv/bin/activate  # На Windows: .venv\Scripts\activate
+   python -m pip install -r requirements.txt
    ```
-
-   или с помощью uv:
-
+   
+   Или с помощью uv:
    ```bash
    uv venv
-   source .venv/bin/activate
-   uv sync --all-extras 
+   source .venv/bin/activate  # На Windows: .venv\Scripts\activate
+   uv sync --all-extras
    ```
-   
-   Запустите проект с помощью manage.py:
-   
+
+2. Создайте файл `.env` с настройками.
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Убедитесь, что PostgreSQL и RabbitMQ запущены и доступны
+
+
+4. Примените миграции:
    ```bash
    cd notification_service
+   python manage.py migrate
+   ```
+
+5. Запустите Django сервер:
+   ```bash
    python manage.py runserver
    ```
+
+6. В отдельных терминалах запустите Celery worker и scheduler:
+   ```bash
+   # Worker
+   celery -A notification_service.config worker
+   
+   # Scheduler (beat)
+   celery -A notification_service.config beat
+   ```
+
+## API
+
+### Отправка уведомления
+
+**Endpoint:** `POST /api/v1/notifications/`
+
+**Требования:**
+- JWT токен в заголовке `Authorization: Bearer <token>` (если аутентификация включена)
+- Scope: `notifications:send`
+
+**Тело запроса:**
+```json
+{
+  "user_uuid": "string",
+  "title": "string",
+  "text": "string",
+  "type": "EMAIL" | "SMS" | "PUSH" | "TELEGRAM" | null
+}
+```
+
+**Пример запроса:**
+```bash
+curl -X POST http://localhost:8000/api/v1/notifications/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "user_uuid": "0",
+    "title": "Новое уведомление",
+    "text": "Текст уведомления",
+    "type": "EMAIL"
+  }'
+```
+
+**Ответ:**
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "was_created": true,
+  "status": "PENDING"
+}
+```
+
+**Коды ответа:**
+- `200` - Уведомление уже существует
+- `201` - Уведомление успешно создано
+- `400` - Ошибка валидации данных
+- `401` - Требуется аутентификация
+- `403` - Недостаточно прав (отсутствует scope `notifications:send`)
+
+### Типы уведомлений
+
+Сервис поддерживает следующие типы уведомлений:
+- `EMAIL` - Email уведомления
+- `SMS` - SMS сообщения
+- `PUSH` - Push уведомления
+- `TELEGRAM` - Telegram сообщения
 
 ## Аутентификация
 
@@ -115,6 +210,23 @@ JWT_PUBLIC_KEY=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBU
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLXByb3ZpZGVyIiwic3ViIjoiMCIsImF1ZCI6Im5vdGlmaWNhdGlvbi1zZXJ2aWNlIiwiaWF0IjoxNzY2OTc5NDYyLCJleHAiOjEwNDA2OTc5NDYyLCJqdGkiOiJlZmI3ZjE3NC1hMmQyLTRhOTItYjViMy01OWVkZmVkMzAyOGMiLCJzY29wZSI6Im5vdGlmaWNhdGlvbnM6c2VuZCJ9.ulgzA-ZrPyxuRg3FO6nDlOLKJ4kCg1rabdArU3FXQ75GXf01dUjRFXmKrTSr5GXS_39LY4WdNpd1a-wXmjlNyOl9aY4ai2ZTb8Oed57DPQXn9zEh_gem9S__9h_Y3xuI3Pn0JS9pIBi_ucK5TqC5DTGtby2KEy-w-HO8fheCbsAEcvXmwY9ecZpCNywUcjFVSQBJS5kAAjljgkqHAQaROjuTRaZCPYNuRRbpjOtke5a8bfhlvO0znDBBjuMVaDQAP15GCfqfsnSO6_c81VNNM4RWwpUaoPsfbxYrb0tgZPuf1Akxw7n6wBdRio-nTtmPSuHktfiixOGfhzrukTOI-OPmHf0MDlxDXC3gTyHcV7w0oVbOVHW3FePMgUPbXUggB1UZJfOJ81xymjhAzB6_YLw4hZzI7tIboiqeuNLNH6o_1PQ0T1IyRegeO8I8KW8gKSFtdbTWf4dY6iN3m7rqW4SvNWTxTm5fHSgvPbgt7DMht41iP_ms949Ogs3tf6_Z7jgDqFJhhlp8bMAf9kbfL5LBvQbX-Bm5EkDdI8akMr7VpgdCY-SvkRh8M2oGZrPSyZZ-vUGd6F3_nBP6kEKIrU7rC7x6HOrOMBlmckJ7Ggc8kBz9IzkhttVJU94Aun8XQNudWw9y2tknnHmu_eyY5fhRty9QrWgMDID6rqTaPoA
 ```
 
+## Тестирование
+
+Для запуска тестов используйте pytest:
+
+```bash
+# Запуск всех тестов
+pytest
+
+# Запуск с покрытием кода
+pytest --cov=notification_service --cov-report=html
+
+# Запуск конкретного теста
+pytest tests/test_adapters_api_views.py
+```
+
+Тесты используют отдельную тестовую базу данных и не требуют запущенных сервисов (RabbitMQ, Keycloak и т.д.).
+
 ## Особенности реализации
 
 ### Асинхронная отправка уведомлений
@@ -160,3 +272,41 @@ JWT_KEYCLOAK_ADMIN_PASSWORD=admin
 2. Создание токенов вручную намеренно упущено в сервисе, 
    потому как это размывает его круг обязанностей (он должен отвечать 
    только за рассылку уведомлений, но не за аутентификацию пользователей).
+
+## Разработка
+
+### Структура проекта
+
+Проект следует принципам Clean Architecture (DDD + Hexagonal):
+
+- `domain/` - Доменные сущности и перечисления
+- `application/` - Use cases, DTOs и порты (интерфейсы)
+- `adapters/` - Реализации портов (API, БД, workers, user providers)
+- `config/` - Конфигурация Django, Celery, Keycloak
+
+### Создание миграций
+
+```bash
+cd notification_service
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### Запуск в режиме разработки
+
+Для разработки рекомендуется использовать локальный запуск без Docker:
+
+1. Установите зависимости (см. раздел [Локальный запуск (без Docker)](#локальный-запуск-без-docker))
+2. Запустите необходимые сервисы через Docker:
+   ```bash
+   docker compose up -d
+   docker compose stop notification_service
+   ```
+3. Запустите Django сервер с автоперезагрузкой:
+   ```bash
+   python manage.py runserver
+   ```
+
+### Логирование
+
+Сервис использует `loguru` для логирования. Логи выводятся в консоль и могут быть настроены через переменные окружения.
