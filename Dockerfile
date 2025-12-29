@@ -14,4 +14,5 @@ WORKDIR /app/notification_service
 ENV PATH="/app/.venv/bin:$PATH"
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+RUN python manage.py collectstatic --noinput
 ENTRYPOINT ["/entrypoint.sh"]
